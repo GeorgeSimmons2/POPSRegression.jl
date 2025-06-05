@@ -19,7 +19,7 @@ end
 function hypercube(dθ, percentile_clipping)
     U, S, V    = svd(dθ)
 
-    projected = dθ * V
+    projected = dθ * transpose(V)
 
     # This is the naive implementation where we just use a percentile clipping to get
     # rid of large parameter bounds from "outliers"
@@ -38,7 +38,7 @@ function sample_hypercube(bounds, number_of_committee_members, V, coeffs)
     
     for j = 1:number_of_committee_members
         U  = rand(Float64, size(bounds, 1))
-        δθ[j, :] = (transpose(V) * (bounds[1] .+ bounds[2] .* U)) + coeffs
+        δθ[j, :] = ((bounds[1] .+ bounds[2] .* U) * V) + coeffs
     end
     return δθ
 end
