@@ -50,14 +50,7 @@ end
 function sample_hypercube(projections, bounds, coeffs; number_of_committee_members = 10)
     lower, upper = bounds[1, :], bounds[2, :]
 
-    δθ = zeros((number_of_committee_members, size(projections, 1)))
     U = rand(Float64, (number_of_committee_members, size(lower, 1)))
-    committee = zeros((number_of_committee_members, size(projections, 1)))'
-    for j = 1:number_of_committee_members
-        θ = projections * (((upper .- lower ) .* U[j, :] ) .+ lower)
-        δθ[j, :] = θ
-        committee[:, j] = θ .+ coeffs
-    end
 
     committee = projections * (lower[:, :]' .+ (upper .- lower)[:,:]' .* U)'
     δθ        = committee * committee' ./ size(committee, 2)
