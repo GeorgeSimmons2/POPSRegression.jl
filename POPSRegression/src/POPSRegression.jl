@@ -1,29 +1,17 @@
 using LinearAlgebra
 using Random
 using Statistics
-using Plots
 
-function sigma(X; lambda_ = 1.0, alpha_ = 1.0)
-    decomp = svd(X; full = false)
-    Vh = decomp.Vt                        # (n_components × n_features)
-    eigen_vals_ = decomp.S .^ 2
-    divisor = eigen_vals_ .+ lambda_ / alpha_
-
-    # divide each row of Vh by corresponding element of divisor
-    Vh_scaled = Vh ./ divisor[:, ones(Int, size(Vh, 2))]  # row-wise division
-
-    scaled_sigma_ = Vh' * Vh_scaled                        # (n_features × n_features)
-    return scaled_sigma_
-end
-
-function corrections(X, Y, scaled_sigma_, coeffs; leverage_percentile=0.0)
-    errors = Y .- (X * coeffs) 
-    leverage = vec(sum((X * scaled_sigma_) .* X, dims=2))
+function corrections(X, Y, Gamma; leverage_percentile=0.0)
+    C      = (Gamma' * Gamma ./ size(X,1) .+ X' * X)
+    A      = C \ X'
+    leverage = diag(X * A)
+    coeffs = C \ (X' * Y)
+    errors = Y .- (X * coeffs)
     leverage_threshold = quantile(leverage, leverage_percentile)
     mask = leverage .>= leverage_threshold
-    pointwise_corrections = (X * scaled_sigma_)[mask, :]
+    pointwise_corrections = A[:,mask]'
     pointwise_corrections = pointwise_corrections .* (errors[mask] ./ leverage[mask])
-
     return pointwise_corrections
 end
 
@@ -47,7 +35,7 @@ function hypercube(pointwise_corrections; percentile_clipping = 0.0)
     return eigvecs, bounds
 end
 
-function sample_hypercube(projections, bounds, coeffs; number_of_committee_members = 10)
+function sample_hypercube(projections, bounds, coeffs; number_of_committee_members = 50)
     lower, upper = bounds[1, :], bounds[2, :]
 
     U = rand(Float64, (number_of_committee_members, size(lower, 1)))
@@ -56,6 +44,6 @@ function sample_hypercube(projections, bounds, coeffs; number_of_committee_membe
     δθ        = committee * committee' ./ size(committee, 2)
 
     committee = coeffs[:,:] .+ committee
-
+    
     return committee, δθ  
 end
