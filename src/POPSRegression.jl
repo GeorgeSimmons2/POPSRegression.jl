@@ -1,5 +1,7 @@
 module POPSRegression
 
+export corrections, hypercube, sample_hypercube
+
 function corrections(X, Y, Gamma; leverage_percentile=0.0)
     C      = (Gamma' * Gamma ./ size(X,1) .+ X' * X)
     A      = C \ X'
