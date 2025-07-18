@@ -2,8 +2,8 @@ module POPSRegression
 
 export corrections, hypercube, sample_hypercube
 
-function corrections(X, Y, Gamma; leverage_percentile=0.0)
-    C      = (Gamma' * Gamma ./ size(X,1) .+ X' * X)
+function corrections(X, Y, Gamma; leverage_percentile = 0.5, lambda = 1/size(X,1))
+    C      = (Gamma' * Gamma .* lambda .+ X' * X)
     A      = C \ X'
     leverage = diag(X * A)
     coeffs = C \ (X' * Y)
@@ -30,7 +30,7 @@ function hypercube(pointwise_corrections; percentile_clipping = 0.0)
     lower = [quantile(projected[:, j], percentile_clipping / 100) for j in 1:size(projected, 2)]
     upper = [quantile(projected[:, j], 1.0 - percentile_clipping / 100) for j in 1:size(projected, 2)]
 
-    bounds = vcat(lower', upper')  # (2 x N)
+    bounds = vcat(lower', upper')
 
     return eigvecs, bounds
 end
