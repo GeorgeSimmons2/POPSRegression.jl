@@ -2,7 +2,11 @@ module POPSRegression
 using LinearAlgebra, Statistics, Random
 export corrections, hypercube, sample_hypercube
 
+<<<<<<< HEAD
 function corrections(X::AbstractMatrix{Float64}, Y::Vector{Float64}, Gamma::AbstractMatrix{Float64}; leverage_percentile::Float64 = 0.5, lambda::Float64 = 1.0 / size(X,1))
+=======
+function corrections(X::AbstractMatrix{Float64}, Y::AbstractVector{Float64}, Gamma::AbstractMatrix{Float64}; leverage_percentile::Float64 = 0.5, lambda::Float64 = 1.0 / size(X,1))
+>>>>>>> 9d01947ed9a998205b18c75feeaf6a342b6b6b69
     C      = (Gamma' * Gamma .* lambda .+ X' * X)
     A      = C \ X'
     leverage = diag(X * A)
