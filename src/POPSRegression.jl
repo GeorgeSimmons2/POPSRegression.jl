@@ -1,5 +1,5 @@
 module POPSRegression
-
+using LinearAlgebra, Statistics, Random
 export corrections, hypercube, sample_hypercube
 
 function corrections(X::Matrix{Float64}, Y::Vector{Float64}, Gamma::Matrix{Float64}; leverage_percentile::Float64 = 0.5, lambda::Float64 = 1.0 / size(X,1))
