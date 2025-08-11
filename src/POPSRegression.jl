@@ -12,7 +12,7 @@ function corrections(X::Matrix{Float64}, Y::Vector{Float64}, Gamma::Matrix{Float
     mask = leverage .>= leverage_threshold
     pointwise_corrections = A[:,mask]'
     pointwise_corrections = pointwise_corrections .* (errors[mask] ./ leverage[mask])
-    pointwise_corrections = P \ pointwise_corrections'
+    pointwise_corrections = Gamma \ pointwise_corrections'
     return pointwise_corrections'
 end
 
