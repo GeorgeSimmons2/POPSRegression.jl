@@ -2,7 +2,7 @@ module POPSRegression
 using LinearAlgebra, Statistics, Random
 export corrections, hypercube, sample_hypercube
 
-function corrections(X::Matrix{Float64}, Y::Vector{Float64}, Gamma::Matrix{Float64}; leverage_percentile::Float64 = 0.5, lambda::Float64 = 1.0 / size(X,1))
+function corrections(X::AbstractMatrix{Float64}, Y::Vector{Float64}, Gamma::AbstractMatrix{Float64}; leverage_percentile::Float64 = 0.5, lambda::Float64 = 1.0 / size(X,1))
     C      = (Gamma' * Gamma .* lambda .+ X' * X)
     A      = C \ X'
     leverage = diag(X * A)
@@ -12,11 +12,11 @@ function corrections(X::Matrix{Float64}, Y::Vector{Float64}, Gamma::Matrix{Float
     mask = leverage .>= leverage_threshold
     pointwise_corrections = A[:,mask]'
     pointwise_corrections = pointwise_corrections .* (errors[mask] ./ leverage[mask])
-    pointwise_corrections = P \ pointwise_corrections'
+    pointwise_corrections = Gamma \ pointwise_corrections'
     return pointwise_corrections'
 end
 
-function hypercube(pointwise_corrections::Matrix{Float64}; percentile_clipping::Float64 = 0.0)
+function hypercube(pointwise_corrections::AbstractMatrix{Float64}; percentile_clipping::Float64 = 0.0)
     eig = eigen(Symmetric(pointwise_corrections' * pointwise_corrections))
     eigvals = eig.values
     eigvecs = eig.vectors
@@ -36,12 +36,12 @@ function hypercube(pointwise_corrections::Matrix{Float64}; percentile_clipping::
     return eigvecs, bounds
 end
 
-function sample_hypercube(projections::Matrix{Float64}, bounds::Array{Float64}, coeffs::Vector{Float64}; number_of_committee_members::Int64 = 50)
+function sample_hypercube(eigvecs::AbstractMatrix{Float64}, bounds::AbstractMatrix{Float64}, coeffs::Vector{Float64}; number_of_committee_members::Int64 = 50)
     lower, upper = bounds[1, :], bounds[2, :]
 
     U = rand(Float64, (number_of_committee_members, size(lower, 1)))
 
-    committee = projections * (lower[:, :]' .+ (upper .- lower)[:,:]' .* U)'
+    committee = eigvecs * (lower[:, :]' .+ (upper .- lower)[:,:]' .* U)'
     δθ        = committee * committee' ./ size(committee, 2)
 
     committee = coeffs[:,:] .+ committee
